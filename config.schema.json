@@ -1,0 +1,252 @@
+{
+  "pluginAlias": "SnugSmartVentilator",
+  "pluginType": "accessory",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "required": true,
+        "default": "Bathroom Fan",
+        "description": "The name that will appear in your homebridge log."
+      },
+      "ventilator": {
+        "title": "Smart Ventilator",
+        "type": "string",
+        "placeholder": "C0:28:8D:45:28:55",
+        "pattern": "^([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}$",
+        "required": true,
+        "description": "Your SNUG Smart Ventilator mac address."
+      },      
+      "fan_speed": {
+        "title": "Fan speed",
+        "description": "Select fan speed between 1 and 100(%).",
+        "required": true,
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 100
+      },
+      "interval_timer_mode_period": {
+        "title": "Switch On Time Interval",
+        "description": "In interval timer mode, fan turn on at every inputted hour(s). Select time interval in hours between 1 and 99.",
+        "required": true,
+        "type": "integer",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 99
+      },
+      "interval_timer_mode_duration": {
+        "title": "Switch On Duration",
+        "description": "In interval timer mode, fan will work during inputted minutes. Select time duration in minutes between 1 and 60.",
+        "required": true,
+        "type": "integer",
+        "default": 10,
+        "minimum": 1,
+        "maximum": 60
+      },
+      "co2_level_trigger_min": {
+        "title": "C02 Level Min",
+        "description": "In C02 level trigger mode, defines min threshold",
+        "required": true,
+        "type": "integer",
+        "default": 500,
+        "minimum": 500,
+        "maximum": 2000
+      },
+      "co2_level_trigger_max": {
+        "title": "C02 Level Max",
+        "description": "In C02 level trigger mode, defines max threshold",
+        "required": true,
+        "type": "integer",
+        "default": 2000,
+        "minimum": 501,
+        "maximum": 2000
+      },
+      "temperature_trigger_mode_threshold_min": {
+        "title": "Temperature Trigger Mode Minimum Threshold",
+        "description": "In temperature trigger mode, define min threshold",
+        "required": true,
+        "type": "integer",
+        "default": 24,
+        "minimum": -20,
+        "maximum": 80
+      },
+      "temperature_trigger_mode_threshold_max": {
+        "title": "Temperature Trigger Mode Maximum Threshold",
+        "description": "In temperature trigger mode, define max threshold",
+        "required": true,
+        "type": "integer",
+        "default": 35,
+        "minimum": -20,
+        "maximum": 80
+      },
+      "timer_mode_hour": {
+        "title": "Timer Setting : Hour",
+        "description": "Select timer hour between 0 and 99.",
+        "required": true,
+        "type": "integer",
+        "default": 1,
+        "minimum": 0,
+        "maximum": 99
+      },
+      "timer_mode_minute": {
+        "title": "Timer Setting : Minutes",
+        "description": "Select timer minutes between 0 and 60.",
+        "required": true,
+        "type": "integer",
+        "default": 30,
+        "minimum": 0,
+        "maximum": 60
+      },
+      "operation_mode": {
+        "title": "Operation Mode",
+        "description": "Operation mode can be normal, Auto(interval, C02 Sensor or Temperature).",
+        "required": true,
+        "type": "integer",
+        "default": 0,
+        "oneOf": [
+          {
+            "title": "Normal",
+            "enum": [ 0 ]
+          },
+          {
+            "title": "Auto(Interval)",
+            "enum": [ 1 ]
+          },
+          {
+            "title": "Auto(Co2 level)",
+            "enum": [ 2 ]
+          },
+          {
+            "title": "Auto(Temperature)",
+            "enum": [ 3 ]
+          },
+          {
+            "title": "Timer",
+            "enum": [ 4 ]
+          }
+        ]
+      }
+    }
+  },
+  "form": null,
+  "display": null,
+  "layout": [
+    {
+      "ref": "basic",
+      "type": "fieldset",
+      "expandable": true,
+      "expanded": true,
+      "title": "Basic settings",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "items": [
+            "name",
+            "ventilator",
+            "fan_speed"
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "operation_parameter_settings",
+      "type": "fieldset",
+      "expandable": true,
+      "expanded": false,
+      "title": "Operation Parameter Settings",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "column",
+          "items": [
+            "operation_mode",
+            {
+              "ref": "advanced_settings_interval_timer_mode",
+              "type": "fieldset",
+              "expandable": true,
+              "expanded": true,
+              "title": "Interval Timer Mode Settings",
+              "items": [
+                {
+                  "type": "flex",
+                  "flex-flow": "column",
+                  "items": [
+                    "interval_timer_mode_period",
+                    "interval_timer_mode_duration"
+                  ]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.operation_mode===1 } catch(e){ return true }"
+              }
+            },
+            {
+              "ref": "advanced_settings_CO2_mode",
+              "type": "fieldset",
+              "expandable": true,
+              "expanded": true,
+              "title": "C02 level Settings",
+              "items": [
+                {
+                  "type": "flex",
+                  "flex-flow": "column",
+                  "items": [
+                    "co2_level_trigger_min",
+                    "co2_level_trigger_max"
+                  ]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.operation_mode===2 } catch(e){ return true }"
+              }
+            },
+            {
+              "ref": "advanced_settings_temperature_mode",
+              "type": "fieldset",
+              "expandable": true,
+              "expanded": true,
+              "title": "Working Temperature Settings",
+              "items": [
+                {
+                  "type": "flex",
+                  "flex-flow": "column",
+                  "items": [
+                    "temperature_trigger_mode_threshold_min",
+                    "temperature_trigger_mode_threshold_max"
+                  ]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.operation_mode===3 } catch(e){ return true }"
+              }
+            },
+            {
+              "ref": "advanced_settings_timer_mode",
+              "type": "fieldset",
+              "expandable": true,
+              "expanded": true,
+              "title": "Timer Setting",
+              "items": [
+                {
+                  "type": "flex",
+                  "flex-flow": "column",
+                  "items": [
+                    "timer_mode_hour",
+                    "timer_mode_minute"
+                  ]
+                }
+              ],
+              "condition": {
+                "functionBody": "try { return model.operation_mode===4 } catch(e){ return true }"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "homebridge-snug-smart-ventilator",
+  "version": "0.0.1",
+  "description": "Homebridge plugin for SNUG smart ventilator",
+  "license": "MIT",
+  "author": "JS Ha",
+  "keywords": [
+    "homebridge",
+    "homebridge-plugin",
+    "homebridge-snug-smart-ventilator",
+    "homekit",
+    "bluetooth",
+    "gatttool",
+    "SNUG",
+    "ventilator",
+    "apple"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/huhsian/homebridge-snug-smart-ventilator.git"
+  },
+  "bugs": {
+    "url": "http://github.com/huhsian/homebridge-snug-smart-ventilator/issues"
+  },
+  "homepage": "https://github.com/huhsian/homebridge-snug-smart-ventilator#readme",
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "node-persist": "^2.1.0",
+    "numeral": "^2.0.6"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": ""
+  },
+  "funding": {
+    "type": "paypal",
+    "url": "https://paypal.me/huhsian"
+  }
+}
