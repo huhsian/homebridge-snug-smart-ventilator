@@ -145,7 +145,7 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
           console.log("Error: " + stderr);
         }
         else {
-          this.log(command_to_snug_ventilator_comment);
+          console.log(command_to_snug_ventilator_comment);
           callback();
         }
       }
