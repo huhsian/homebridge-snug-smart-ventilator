@@ -79,21 +79,22 @@ SnugSmartVentilator.prototype.getServices = function () {
 
 SnugSmartVentilator.prototype._setOn = function (on, callback) {
   this.storage.setItemSync(this.name, on);
-  var command_to_snug_ventilator = "";
+  var command_to_snug_ventilator_command_common = "gatttool -i hci0 -b " + this.ventilator + " --char-write-req -a 0x002a -n ";
+  var command_to_snug_ventilator_command = "";
   var command_to_snug_ventilator_comment = "";
 
   if (on == true) {
     if (this.operation_mode == OPERATION_MODE_NORMAL) {
-      // 0x02 + "O" + "1" + 3 digit ascii string for fan speed + 0x03 + 0x0d + 0x0a
-      command_to_snug_ventilator = "024f31" + AsciiToHex(numeral(this.fan_speed).format('000')) + "030d0a";
-      command_to_snug_ventilator_comment = "Setting fan to ON : [Normal mode]" + command_to_snug_ventilator;
+      // 0x02 + "O" + "1" + 3 digit ascii string for fan speed + 0x03 + 0x0d + 0x0a      
+      command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "024f31" + AsciiToHex(numeral(this.fan_speed).format('000')) + "030d0a";
+      command_to_snug_ventilator_comment = "Setting fan to ON : [Normal mode]" + command_to_snug_ventilator_command;
     }
     else {
       if (this.operation_mode == OPERATION_MODE_TIMER) {
         if ((this.timer_mode_hour != 0) || (this.timer_mode_minute != 0)) {
-          // 0x02 + "C" + "025" + 2 digit ascii string for hour(in hour) + 2 digit ascii string for minute + 0x03 + 0x0d + 0x0a
-          command_to_snug_ventilator = "0243303235" + AsciiToHex(numeral(this.timer_mode_hour).format('00')) + AsciiToHex(numeral(this.timer_mode_minute).format('00')) + "030d0a";
-          command_to_snug_ventilator_comment = "Setting fan to ON : Timer : " + command_to_snug_ventilator;
+          // 0x02 + "C" + "3 digit ascii string for fan speed" + 2 digit ascii string for hour(in hour) + 2 digit ascii string for minute + 0x03 + 0x0d + 0x0a
+          command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0243" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.timer_mode_hour).format('00')) + AsciiToHex(numeral(this.timer_mode_minute).format('00')) + "030d0a";
+          command_to_snug_ventilator_comment = "Setting fan to ON : Timer : " + command_to_snug_ventilator_command;
         }
         else {
           this.log("Error : Invalid timer setting!");
@@ -101,16 +102,16 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
       }
       else {
         if (this.operation_mode == OPERATION_MODE_AUTO_INTERVAL_TIMER) {
-          // 0x02 + "S" + "001" + 2 digit ascii string for period(in hour) + "0" + 2 digit ascii string for duration(in minute) + 0x03 + 0x0d + 0x0a
-          command_to_snug_ventilator = "0253303031" + AsciiToHex(numeral(this.interval_timer_mode_period).format('00')) + "3030" + AsciiToHex(numeral(this.interval_timer_mode_duration).format('00')) + "030d0a";
-          command_to_snug_ventilator_comment = "Setting fan to ON : Auto(interval) : " + command_to_snug_ventilator;
+          // 0x02 + "S" + "3 digit ascii string for fan speed" + 2 digit ascii string for period(in hour) + "000" + 2 digit ascii string for duration(in minute) + + "0" + 0x03 + 0x0d + 0x0a
+          command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0253" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.interval_timer_mode_period).format('00')) + "303030" + AsciiToHex(numeral(this.interval_timer_mode_duration).format('00')) + "30030d0a";
+          command_to_snug_ventilator_comment = "Setting fan to ON : Auto(interval) : " + command_to_snug_ventilator_command;
         }
         else {
           if (this.operation_mode == OPERATION_MODE_AUTO_C02_SENSOR) {
             if (this.co2_level_trigger_min < this.co2_level_trigger_max) {
-              // 0x02 + "D" + "001" + 4 digit ascii string for minimum-c02-level + 4 digit ascii string for maximum-c02-level + 0x03 + 0x0d + 0x0a
-              command_to_snug_ventilator = "0244303031" + AsciiToHex(numeral(this.co2_level_trigger_min).format('0000')) + AsciiToHex(numeral(this.co2_level_trigger_max).format('0000')) + "030d0a";
-              command_to_snug_ventilator_comment = "Setting fan to ON : Auto(Co2) : " + command_to_snug_ventilator;
+              // 0x02 + "D" + "3 digit ascii string for fan speed" + 4 digit ascii string for minimum-c02-level + 4 digit ascii string for maximum-c02-level + 0x03 + 0x0d + 0x0a
+              command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0244" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.co2_level_trigger_min).format('0000')) + AsciiToHex(numeral(this.co2_level_trigger_max).format('0000')) + "030d0a";
+              command_to_snug_ventilator_comment = "Setting fan to ON : Auto(Co2) : " + command_to_snug_ventilator_command;
             }
             else {
               this.log("Error : Invalid CO2 level setting!");
@@ -119,9 +120,9 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
           else {
             if (this.operation_mode == OPERATION_MODE_AUTO_TEMPERATURE) {
               if (this.temperature_trigger_mode_threshold_min < this.temperature_trigger_mode_threshold_max) {
-                // 0x02 + "T" + "001" + 3 digit ascii string for minimum-temp + "0" + 3 digit ascii string for maximum-temp + "0" + 0x03 + 0x0d + 0x0a
-                command_to_snug_ventilator = "0254303031" + AsciiToHex(numeral(this.temperature_trigger_mode_threshold_min).format('000')) + "30" + AsciiToHex(numeral(this.temperature_trigger_mode_threshold_max).format('000')) + "30" + "030d0a";
-                command_to_snug_ventilator_comment = "Setting fan to ON : Auto(Temp) : " + command_to_snug_ventilator;
+                // 0x02 + "T" + "3 digit ascii string for fan speed" + 3 digit ascii string for minimum-temp + "0" + 3 digit ascii string for maximum-temp + "0" + 0x03 + 0x0d + 0x0a
+                command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0254" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.temperature_trigger_mode_threshold_min).format('000')) + "30" + AsciiToHex(numeral(this.temperature_trigger_mode_threshold_max).format('000')) + "30" + "030d0a";
+                command_to_snug_ventilator_comment = "Setting fan to ON : Auto(Temp) : " + command_to_snug_ventilator_command;
               }
               else {
                 this.log("Error : Invalid temperature range setting!");
@@ -134,12 +135,12 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
   }
   else {
     // 0x02 + "O" + "1" + "3 digit ascii string for fan speed 0" + 0x03 + 0x0d + 0x0a
-    command_to_snug_ventilator = "024f31" + AsciiToHex(numeral(0).format('000')) + "030d0a";
-    command_to_snug_ventilator_comment = "Setting fan to OFF : " + command_to_snug_ventilator;
+    command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "024f31" + AsciiToHex(numeral(0).format('000')) + "030d0a";
+    command_to_snug_ventilator_comment = "Setting fan to OFF : " + command_to_snug_ventilator_command;
   }
 
-  if (command_to_snug_ventilator.length > 0) {
-    child = exec("gatttool -i hci0 -b " + this.ventilator + " --char-write-req -a 0x002a -n " + command_to_snug_ventilator,
+  if (command_to_snug_ventilator_command.length > 0) {
+    child = exec(command_to_snug_ventilator_command,
       function (error, stdout, stderr) {
         if (error !== null) {
           console.log("Error: " + stderr);
