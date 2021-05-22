@@ -29,15 +29,16 @@ module.exports = function (homebridge) {
 function SnugSmartVentilator(log, config) {
   this.log = log;
   this.name = config.name;
-  this.stateful = true;
-  this.reverse = false;
-  this.time = 1000;
   this.ventilator = config.ventilator;
-  this.host = config.host;
 
   this.fan_speed = config.fan_speed;
   this.interval_timer_mode_period = config.interval_timer_mode_period;
-  this.interval_timer_mode_duration = config.interval_timer_mode_duration;
+  this.interval_timer_mode_duration_hours = Math.floor(config.interval_timer_mode_duration/60); // hours
+  this.interval_timer_mode_duration_minutes = config.interval_timer_mode_duration % 60;         // seconds
+  
+  this.log("interval_timer_mode_duration_hours : " + this.interval_timer_mode_duration_hours);
+  this.log("interval_timer_mode_duration_minutes : " + this.interval_timer_mode_duration_minutes);
+
   this.co2_level_trigger_min = config.co2_level_trigger_min;
   this.co2_level_trigger_max = config.co2_level_trigger_max;
   this.temperature_trigger_mode_threshold_min = config.temperature_trigger_mode_threshold_min;
@@ -85,9 +86,10 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
 
   if (on == true) {
     if (this.operation_mode == OPERATION_MODE_NORMAL) {
+      // Set to manual mode(disable Auto mode) => "024131030d0a"
       // 0x02 + "O" + "1" + 3 digit ascii string for fan speed + 0x03 + 0x0d + 0x0a      
-      command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "024f31" + AsciiToHex(numeral(this.fan_speed).format('000')) + "030d0a";
-      command_to_snug_ventilator_comment = "Setting fan to ON : [Normal mode]" + command_to_snug_ventilator_command;
+        command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "024131030d0a" + " -n " + "024f31" + AsciiToHex(numeral(this.fan_speed).format('000')) + "030d0a";
+      command_to_snug_ventilator_comment = "Setting fan to ON : [Normal mode]" + command_to_snug_ventilator_command;      
     }
     else {
       if (this.operation_mode == OPERATION_MODE_TIMER) {
@@ -102,9 +104,12 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
       }
       else {
         if (this.operation_mode == OPERATION_MODE_AUTO_INTERVAL_TIMER) {
-          // 0x02 + "S" + "3 digit ascii string for fan speed" + 2 digit ascii string for period(in hour) + "000" + 2 digit ascii string for duration(in minute) + + "0" + 0x03 + 0x0d + 0x0a
-          command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0253" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.interval_timer_mode_period).format('00')) + "303030" + AsciiToHex(numeral(this.interval_timer_mode_duration).format('00')) + "30030d0a";
-          command_to_snug_ventilator_comment = "Setting fan to ON : Auto(interval) : " + command_to_snug_ventilator_command;
+            // duration parameter is a unit of minutes, but this fan get as hours + minutes example => 140 minutes => 2 hours 20 minutes => 0220
+            // 0x02 + "S" + "3 digit ascii string for fan speed" + 2 digit ascii string for period(in hour) + "00" + 2 digit ascii string for duration(in hours) + 2 digit ascii string for duration(in minute) + 0x03 + 0x0d + 0x0a
+            // example => 0253303735 3031 3030 30303230 030d0a => 20 minutes per 1 hours
+            // example => 0253303735 3033 3030 30323230 030d0a => 2 hours 20 minutes(140 minutes) per 3 hours
+            command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0253" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.interval_timer_mode_period).format('00')) + "3030" + AsciiToHex(numeral(this.interval_timer_mode_duration_hours).format('00')) + AsciiToHex(numeral(this.interval_timer_mode_duration_minutes).format('00')) + "030d0a";
+            command_to_snug_ventilator_comment = "Setting fan to ON : Auto(interval) : " + command_to_snug_ventilator_command;
         }
         else {
           if (this.operation_mode == OPERATION_MODE_AUTO_C02_SENSOR) {
@@ -139,7 +144,7 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
     command_to_snug_ventilator_comment = "Setting fan to OFF : " + command_to_snug_ventilator_command;
   }
 
-  if (command_to_snug_ventilator_command.length > 0) {
+  if(command_to_snug_ventilator_command.length > 0) {
     child = exec(command_to_snug_ventilator_command,
       function (error, stdout, stderr) {
         if (error !== null) {
