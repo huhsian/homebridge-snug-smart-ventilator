@@ -30,21 +30,21 @@
       },
       "interval_timer_mode_period": {
         "title": "Switch On Time Interval",
-        "description": "In interval timer mode, fan turn on at every inputted hour(s). Select time interval in hours between 1 and 99.",
+        "description": "In interval timer mode, fan turn on at every inputted minutes. Select time interval in minutes between 1 and 1440(1 day).",
         "required": true,
         "type": "integer",
         "default": 1,
         "minimum": 1,
-        "maximum": 99
+        "maximum": 1440
       },
       "interval_timer_mode_duration": {
         "title": "Switch On Duration",
-        "description": "In interval timer mode, fan will work during inputted minutes. Select time duration in minutes between 1 and 60.",
+        "description": "In interval timer mode, fan will work during inputted minutes. Select time duration in minutes between 1 and 1440(1 day).",
         "required": true,
         "type": "integer",
         "default": 10,
         "minimum": 1,
-        "maximum": 60
+        "maximum": 1440
       },
       "co2_level_trigger_min": {
         "title": "C02 Level Min",
