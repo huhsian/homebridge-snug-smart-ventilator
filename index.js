@@ -32,9 +32,18 @@ function SnugSmartVentilator(log, config) {
   this.ventilator = config.ventilator;
 
   this.fan_speed = config.fan_speed;
+  
+  this.interval_timer_mode_duration = config.interval_timer_mode_duration;
   this.interval_timer_mode_period = config.interval_timer_mode_period;
+
+  this.interval_timer_mode_period_hours = Math.floor(config.interval_timer_mode_period/60); // hours
+  this.interval_timer_mode_period_minutes = config.interval_timer_mode_period % 60;         // seconds
+
   this.interval_timer_mode_duration_hours = Math.floor(config.interval_timer_mode_duration/60); // hours
   this.interval_timer_mode_duration_minutes = config.interval_timer_mode_duration % 60;         // seconds
+
+  this.log("interval_timer_mode_period_hours : " + this.interval_timer_mode_period_hours);
+  this.log("interval_timer_mode_period_minutes : " + this.interval_timer_mode_period_minutes);
   
   this.log("interval_timer_mode_duration_hours : " + this.interval_timer_mode_duration_hours);
   this.log("interval_timer_mode_duration_minutes : " + this.interval_timer_mode_duration_minutes);
@@ -104,12 +113,17 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
       }
       else {
         if (this.operation_mode == OPERATION_MODE_AUTO_INTERVAL_TIMER) {
-            // duration parameter is a unit of minutes, but this fan get as hours + minutes example => 140 minutes => 2 hours 20 minutes => 0220
-            // 0x02 + "S" + "3 digit ascii string for fan speed" + 2 digit ascii string for period(in hour) + "00" + 2 digit ascii string for duration(in hours) + 2 digit ascii string for duration(in minute) + 0x03 + 0x0d + 0x0a
-            // example => 0253303735 3031 3030 30303230 030d0a => 20 minutes per 1 hours
-            // example => 0253303735 3033 3030 30323230 030d0a => 2 hours 20 minutes(140 minutes) per 3 hours
-            command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0253" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.interval_timer_mode_period).format('00')) + "3030" + AsciiToHex(numeral(this.interval_timer_mode_duration_hours).format('00')) + AsciiToHex(numeral(this.interval_timer_mode_duration_minutes).format('00')) + "030d0a";
-            command_to_snug_ventilator_comment = "Setting fan to ON : Auto(interval) : " + command_to_snug_ventilator_command;
+            if (this.interval_timer_mode_duration < this.interval_timer_mode_period) {
+                // duration parameter is a unit of minutes, but this fan get as hours + minutes example => 140 minutes => 2 hours 20 minutes => 0220
+                // 0x02 + "S" + "3 digit ascii string for fan speed" + 2 digit ascii string for period(in hours) + 2 digit ascii string for period(in minute) + 2 digit ascii string for duration(in hours) + 2 digit ascii string for duration(in minute) + 0x03 + 0x0d + 0x0a
+                // example => 0253303735 3031 3030 30303230 030d0a => 20 minutes per 1 hours
+                // example => 0253303735 3033 3030 30323230 030d0a => 2 hours 20 minutes(140 minutes) per 3 hours
+                command_to_snug_ventilator_command = command_to_snug_ventilator_command_common + "0253" + AsciiToHex(numeral(this.fan_speed).format('000')) + AsciiToHex(numeral(this.interval_timer_mode_period_hours).format('00')) + AsciiToHex(numeral(this.interval_timer_mode_period_minutes).format('00')) + AsciiToHex(numeral(this.interval_timer_mode_duration_hours).format('00')) + AsciiToHex(numeral(this.interval_timer_mode_duration_minutes).format('00')) + "030d0a";
+                command_to_snug_ventilator_comment = "Setting fan to ON : Auto(interval) : " + command_to_snug_ventilator_command;
+            }
+            else {
+                this.log("Error : Invalid period setting!");
+            }
         }
         else {
           if (this.operation_mode == OPERATION_MODE_AUTO_C02_SENSOR) {
