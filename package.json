@@ -1,6 +1,6 @@
 {
   "name": "homebridge-snug-smart-ventilator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Homebridge plugin for SNUG smart ventilator",
   "license": "MIT",
   "author": "JS Ha",
