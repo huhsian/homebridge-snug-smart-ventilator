@@ -159,6 +159,7 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
   }
 
   if(command_to_snug_ventilator_command.length > 0) {
+    command_to_snug_ventilator_command += " && sleep 0.5s";
     child = exec(command_to_snug_ventilator_command,
       function (error, stdout, stderr) {
         if (error !== null) {
