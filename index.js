@@ -6,6 +6,7 @@ const OPERATION_MODE_TIMER = 4;
 
 var Service, Characteristic, HomebridgeAPI;
 var util = require('util'), exec = require('child_process').exec, child;
+var semaphore = require('semaphore')(1);
 var numeral = require('numeral');
 
 const str = '';
@@ -160,16 +161,19 @@ SnugSmartVentilator.prototype._setOn = function (on, callback) {
 
   if(command_to_snug_ventilator_command.length > 0) {
     command_to_snug_ventilator_command += " && sleep 0.5s";
-    child = exec(command_to_snug_ventilator_command,
-      function (error, stdout, stderr) {
-        if (error !== null) {
-          console.log("Error: " + stderr);
-        }
-        else {
-          console.log(command_to_snug_ventilator_comment);
-          callback();
-        }
-      }
-    );
-  } 
+    semaphore.take(function() {
+        child = exec(command_to_snug_ventilator_command,
+            function (error, stdout, stderr) {
+                if (error  !== null) {
+                    console.log("Error: " + stderr);
+                    semaphore.leave();
+                }
+                else {
+                    console.log(command_to_snug_ventilator_comment);
+                    callback();
+                    semaphore.leave();
+                }
+            });
+        });
+    } 
 }
